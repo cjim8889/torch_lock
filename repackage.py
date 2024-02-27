@@ -34,15 +34,22 @@ def repackage_wheel(original_wheel_path, suffix="+cpu"):
         print("Error: .dist-info directory not found in the wheel.")
         sys.exit(1)
 
-    metadata_file = os.path.join(temp_dir, dist_info_dirs[0], "METADATA")
+    original_dist_info_dir = os.path.join(temp_dir, dist_info_dirs[0])
+    new_dist_info_dir_name = dist_info_dirs[0].replace(
+        "-", "+cpu-", 1
+    )  # Insert '+cpu' suffix
+    new_dist_info_dir = os.path.join(temp_dir, new_dist_info_dir_name)
+    os.rename(original_dist_info_dir, new_dist_info_dir)
+
+    # Update the version in METADATA of the newly named .dist-info directory
+    metadata_file = os.path.join(new_dist_info_dir, "METADATA")
     with open(metadata_file, "r") as f:
         metadata = f.read()
 
-    print(metadata[:100])
     new_metadata = re.sub(
         r"(?m)^Version: (.+)", lambda m: f"Version: {m.group(1)}{suffix}", metadata
     )
-    print(new_metadata[:100])
+
     with open(metadata_file, "w") as f:
         f.write(new_metadata)
 
